@@ -20,6 +20,7 @@ public class LuceneTester {
     public static void main(String[] args) {
         System.out.println("Hola mundo");
         LuceneTester tester;
+
         try{
             tester = new LuceneTester();
             tester.createIndex();
@@ -54,8 +55,8 @@ public class LuceneTester {
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
         searcher = new Searcher(indexDir);
-        //Creamos un término para buscar la palabra en en contenido de los archivos
-        Term term = new Term(LuceneConstants.CONTENTS, searchQuery);
+        //Creamos un término para buscar la palabra en el contenido de los archivos
+        Term term = new Term(LuceneConstants.QUESTION, searchQuery);
         Query query = new FuzzyQuery(term);
 
         TopDocs coincidences = searcher.search(query);

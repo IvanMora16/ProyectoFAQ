@@ -9,6 +9,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -34,16 +36,52 @@ public class Indexer {
         writer.close();
     }
 
+//    private Document getDocument(File file) throws IOException {
+//        Document doc = new Document();
+//        //indexamos el contenido del archivo
+//        Field contentField = new TextField(LuceneConstants.CONTENTS, new FileReader(file));
+//        //indexamos el nombre del archivo
+//        Field fileNameField = new TextField(LuceneConstants.FILE_NAME, file.getName(), Field.Store.YES);
+//        //indexamos la ruta del archivo
+//        Field filePathField = new TextField(LuceneConstants.FILE_PATH, file.getCanonicalPath(), Field.Store.YES);
+//
+//        doc.add(contentField);
+//        doc.add(fileNameField);
+//        doc.add(filePathField);
+//
+//        return doc;
+//    }
+
     private Document getDocument(File file) throws IOException {
+        JSONParser parser = new JSONParser();
+        String question = "";
+        String answer = "";
         Document doc = new Document();
-        //indexamos el contenido del archivo
-        Field contentField = new TextField(LuceneConstants.CONTENTS, new FileReader(file));
+
+        try{
+            Object object = parser.parse(new FileReader(file));
+            JSONObject jsonObject = (JSONObject) object;
+            Long id = (Long) jsonObject.get("id");
+            question = (String) jsonObject.get("question");
+            answer = (String) jsonObject.get("answer");
+
+            System.out.println("Pregunta: " + question);
+            System.out.println("Respuesta: " + answer);
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        //indexamos el contenido del archivo: pregunta y respuesta
+        Field questionField = new TextField(LuceneConstants.QUESTION, question, Field.Store.YES);
+        Field answerField = new TextField(LuceneConstants.ANSWER, answer, Field.Store.YES);
         //indexamos el nombre del archivo
         Field fileNameField = new TextField(LuceneConstants.FILE_NAME, file.getName(), Field.Store.YES);
         //indexamos la ruta del archivo
         Field filePathField = new TextField(LuceneConstants.FILE_PATH, file.getCanonicalPath(), Field.Store.YES);
 
-        doc.add(contentField);
+        doc.add(questionField);
+        doc.add(answerField);
         doc.add(fileNameField);
         doc.add(filePathField);
 
