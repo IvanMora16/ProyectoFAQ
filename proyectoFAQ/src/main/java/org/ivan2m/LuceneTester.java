@@ -10,6 +10,7 @@ import org.apache.lucene.search.TopDocs;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 public class LuceneTester {
     String indexDir = "C:\\Users\\ivan_\\Desktop\\Universidad\\TFG\\index";
@@ -47,10 +48,11 @@ public class LuceneTester {
 
     private void createIndex() throws IOException {
         indexer = new Indexer(indexDir);
-        int numIndexed =  indexer.createIndex(dataDir, new TextFileFilter());
+        Map<String, Integer> numIndexed =  indexer.createIndex(dataDir, new TextFileFilter());
         indexer.close();
 
-        System.out.println("Se han indexado " + numIndexed + " archivos");
+        System.out.println("Hay un total de " + numIndexed.get("total") + " archivos indexados, "
+                + numIndexed.get("new") + " son nuevos");
     }
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
