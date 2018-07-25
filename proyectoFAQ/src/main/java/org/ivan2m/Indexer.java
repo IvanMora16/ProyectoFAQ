@@ -29,7 +29,7 @@ public class Indexer {
     /**
      * Para crear o abrir el indexador para poder añadir documentos
      */
-    public Indexer(String indexDirectoryPath) throws IOException{
+    public Indexer(String indexDirectoryPath, boolean deleteIndex) throws IOException{
         try {
             //El directorio donde estarán las indexaciones
             this.indexDir = indexDirectoryPath;
@@ -37,9 +37,12 @@ public class Indexer {
             Analyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
 
-            //Creamos el indexador(hasta hacer close no se guardará, por lo que IndexExist ahora
-            // mismo devuelve false), o lo abrimos en caso de ya existir
+            //Creamos el indexador o lo abrimos en caso de ya existir
             writer = new IndexWriter(indexDirectory, indexWriterConf);
+            if(deleteIndex) {
+                writer.deleteAll();
+            }
+            writer.commit();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -136,29 +139,21 @@ public class Indexer {
      * @param indexExist
      * @throws IOException
      */
-    private boolean indexFile(File file, boolean indexExist) throws IOException {
+    private boolean indexFile(File file) throws IOException {
         boolean indexed = true;
 
-        //Comprobamos si existe índice, si no al buscar si existe el archivo daría error
-        if(!indexExist){
+        //Buscamos si el archivo a indexar ya lo está
+        Searcher searcher = new Searcher(indexDir);
+        TopDocs results = searcher.search(new TermQuery(new Term(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase())));
+
+        //Si no está indexado, lo indexamos
+        if (results.totalHits == 0) {
             System.out.println("Indexing " + file.getCanonicalPath());
             Document doc = getDocument(file);
             writer.addDocument(doc);
         }
-        else {
-            //Buscamos si el archivo a indexar ya lo está
-            Searcher searcher = new Searcher(indexDir);
-            TopDocs results = searcher.search(new TermQuery(new Term(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase())));
-
-            //Si no está indexado, lo indexamos
-            if (results.totalHits == 0) {
-                System.out.println("Indexing " + file.getCanonicalPath());
-                Document doc = getDocument(file);
-                writer.addDocument(doc);
-            }
-            else{
-                indexed = false;
-            }
+        else{
+            indexed = false;
         }
 
         return indexed;
@@ -179,7 +174,7 @@ public class Indexer {
         for(File file : files){
             indexed = false;
             if(!file.isDirectory() && file.exists() && file.canRead() && filter.accept(file)){
-                indexed = indexFile(file, this.indexExist(this.indexDir));
+                indexed = indexFile(file);
                 if(indexed)
                     newFiles++;
             }

@@ -47,7 +47,7 @@ public class LuceneTester {
     }
 
     private void createIndex() throws IOException {
-        indexer = new Indexer(indexDir);
+        indexer = new Indexer(indexDir, false);
         Map<String, Integer> numIndexed =  indexer.createIndex(dataDir, new TextFileFilter());
         indexer.close();
 
