@@ -2,10 +2,8 @@ package org.ivan2m;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.FuzzyQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
+import org.apache.lucene.util.QueryBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,11 +34,12 @@ public class LuceneTester {
             br.close();
 
             //Separamos las palabras de la posible frase
-            String[] words = searchString.split(" ");
+            /*String[] words = searchString.split(" ");
             for(int i = 0; i < words.length; i++){
                 System.out.println("Resultados de la búsqueda de la palabra: " + words[i]);
                 tester.searchFuzzyQuery(words[i]);
-            }
+            }*/
+            tester.searchFuzzyQuery(searchString);
         }catch(Exception ex){
             ex.printStackTrace();
         }
@@ -57,11 +56,22 @@ public class LuceneTester {
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
         searcher = new Searcher(indexDir);
-        //Creamos un término para buscar la palabra en el contenido de los archivos
-        Term term = new Term(LuceneConstants.QUESTION, searchQuery);
-        Query query = new FuzzyQuery(term);
+        PhraseQuery.Builder phraseQueryBuilder = new PhraseQuery.Builder();
 
-        TopDocs coincidences = searcher.search(query);
+        //Separamos las palabras de la posible frase para anyadirlas al phraseQuery
+        String[] words = searchQuery.split(" ");
+        for(int i = 0; i < words.length; i++){
+            phraseQueryBuilder.add(new Term(LuceneConstants.QUESTION, words[i]));
+        }
+
+        phraseQueryBuilder.setSlop(2);
+        PhraseQuery phraseQuery = phraseQueryBuilder.build();
+
+//        //Creamos un término para buscar la palabra en el contenido de los archivos
+//        Term term = new Term(LuceneConstants.QUESTION, searchQuery);
+//        Query query = new FuzzyQuery(term);
+
+        TopDocs coincidences = searcher.search(phraseQuery);
 
         System.out.println(coincidences.totalHits + " documentos encontrados");
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){
