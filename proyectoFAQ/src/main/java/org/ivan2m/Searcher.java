@@ -13,8 +13,6 @@ import java.nio.file.Paths;
 public class Searcher {
     private DirectoryReader reader;
     private IndexSearcher indexSearcher;
-    private QueryBuilder queryBuilder;
-    private Query query;
 
     public Searcher(String indexDirectoryPath) throws IOException {
         try {

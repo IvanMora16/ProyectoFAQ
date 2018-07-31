@@ -56,22 +56,11 @@ public class LuceneTester {
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
         searcher = new Searcher(indexDir);
-        PhraseQuery.Builder phraseQueryBuilder = new PhraseQuery.Builder();
+        QueryBuilder queryBuilder = new QueryBuilder(indexer.getAnalyzer());
 
-        //Separamos las palabras de la posible frase para anyadirlas al phraseQuery
-        String[] words = searchQuery.split(" ");
-        for(int i = 0; i < words.length; i++){
-            phraseQueryBuilder.add(new Term(LuceneConstants.QUESTION, words[i]));
-        }
-
-        phraseQueryBuilder.setSlop(2);
-        PhraseQuery phraseQuery = phraseQueryBuilder.build();
-
-//        //Creamos un término para buscar la palabra en el contenido de los archivos
-//        Term term = new Term(LuceneConstants.QUESTION, searchQuery);
-//        Query query = new FuzzyQuery(term);
-
-        TopDocs coincidences = searcher.search(phraseQuery);
+        Query query = queryBuilder.createPhraseQuery(LuceneConstants.QUESTION, searchQuery, 500);
+        
+        TopDocs coincidences = searcher.search(query);
 
         System.out.println(coincidences.totalHits + " documentos encontrados");
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){

@@ -25,6 +25,7 @@ import java.util.Map;
 public class Indexer {
     private IndexWriter writer;
     private String indexDir = "";
+    private Analyzer analyzer;
 
     /**
      * Para crear o abrir el indexador para poder añadir documentos
@@ -34,7 +35,7 @@ public class Indexer {
             //El directorio donde estarán las indexaciones
             this.indexDir = indexDirectoryPath;
             Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
-            Analyzer analyzer = new StandardAnalyzer();
+            analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
 
             //Creamos el indexador o lo abrimos en caso de ya existir
@@ -185,5 +186,9 @@ public class Indexer {
         indexInfo.put("new", newFiles);
 
         return indexInfo;
+    }
+
+    public Analyzer getAnalyzer() {
+        return analyzer;
     }
 }
