@@ -3,6 +3,7 @@ package org.ivan2m;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.spans.*;
 import org.apache.lucene.util.QueryBuilder;
 
 import java.io.BufferedReader;
@@ -56,16 +57,26 @@ public class LuceneTester {
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
         searcher = new Searcher(indexDir);
-        QueryBuilder queryBuilder = new QueryBuilder(indexer.getAnalyzer());
+        TopDocs coincidences;
 
-        Query query = queryBuilder.createPhraseQuery(LuceneConstants.QUESTION, searchQuery, 500);
-        
-        TopDocs coincidences = searcher.search(query);
+        //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un fuzzyquery
+        String[] words = searchQuery.split(" ");
+        SpanQuery[] multiWordFuzzyQuery = new SpanQuery[words.length];
+
+        for (int i = 0; i < words.length; i++) {
+            multiWordFuzzyQuery[i] = new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term(LuceneConstants.QUESTION, words[i])));
+        }
+
+        //Con longitud 0 el SpanNearQuery peta, necesita al menos 2 palabras para ver si estan cerca entre ellas
+        //En cambio el SpanOrQuery va bien
+//        SpanNearQuery query = new SpanNearQuery(multiWordFuzzyQuery, 500, false);
+        SpanOrQuery query = new SpanOrQuery(multiWordFuzzyQuery);
+
+        coincidences = searcher.search(query);
 
         System.out.println(coincidences.totalHits + " documentos encontrados");
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){
             Document doc = searcher.getDocument(scoreDoc);
-            String content = doc.get("content");
             System.out.println("Puntuación: " + scoreDoc.score + " | Archivo: " + doc.get(LuceneConstants.FILE_PATH));
         }
 
