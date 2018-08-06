@@ -1,7 +1,7 @@
 package org.ivan2m;
 
 public class LuceneConstants {
-    public static final String CONTENTS = "contents";
+    public static final String ID = "id";
     public static final String QUESTION = "question";
     public static final String ANSWER = "answer";
     public static final String FILE_NAME = "filename";

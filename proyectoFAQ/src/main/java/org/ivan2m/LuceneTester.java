@@ -48,11 +48,12 @@ public class LuceneTester {
 
     private void createIndex() throws IOException {
         indexer = new Indexer(indexDir, false);
-        Map<String, Integer> numIndexed =  indexer.createIndex(dataDir, new TextFileFilter());
-        indexer.close();
+        indexer.createIndex(dataDir, new TextFileFilter());
+        Map<String, Integer> numIndexed = indexer.getIndexInfo();
+                indexer.close();
 
-        System.out.println("Hay un total de " + numIndexed.get("total") + " archivos indexados, "
-                + numIndexed.get("new") + " son nuevos");
+        System.out.println("Hay un total de " + numIndexed.get("totalQuestions") + " preguntas indexadas de " +
+                numIndexed.get("totalFAQs") + " FAQs (archivos), " + numIndexed.get("newFAQs") + " FAQs nuevos");
     }
 
     private void searchFuzzyQuery(String searchQuery) throws IOException {
@@ -74,10 +75,11 @@ public class LuceneTester {
 
         coincidences = searcher.search(query);
 
-        System.out.println(coincidences.totalHits + " documentos encontrados");
+        System.out.println(coincidences.totalHits + " preguntas encontradas");
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){
             Document doc = searcher.getDocument(scoreDoc);
-            System.out.println("Puntuación: " + scoreDoc.score + " | Archivo: " + doc.get(LuceneConstants.FILE_PATH));
+            System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
+                    " | Pregunta id: " + doc.get(LuceneConstants.ID));
         }
 
         searcher.close();
