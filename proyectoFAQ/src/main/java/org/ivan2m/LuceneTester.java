@@ -17,15 +17,14 @@ public class LuceneTester {
     Indexer indexer;
     Searcher searcher;
 
-    public static void main(String[] args) {
+    public String searchQuestion(String searchString) {
         System.out.println("Hola mundo");
-        LuceneTester tester;
+        String result = "";
 
         try{
-            tester = new LuceneTester();
-            tester.createIndex();
+            this.createIndex();
 
-            BufferedReader br;
+            /*BufferedReader br;
             String searchString = "";
             System.out.print("Introduce la cadena a buscar: ");
             System.out.println();
@@ -33,17 +32,16 @@ public class LuceneTester {
             br = new BufferedReader(new InputStreamReader(System.in));
             searchString = br.readLine();
             br.close();
+            */
 
-            //Separamos las palabras de la posible frase
-            /*String[] words = searchString.split(" ");
-            for(int i = 0; i < words.length; i++){
-                System.out.println("Resultados de la búsqueda de la palabra: " + words[i]);
-                tester.searchFuzzyQuery(words[i]);
-            }*/
-            tester.searchFuzzyQuery(searchString);
+            result = this.searchFuzzyQuery(searchString);
+//            tester.searchFuzzyQuery2(searchString);
+
         }catch(Exception ex){
             ex.printStackTrace();
         }
+
+        return result;
     }
 
     private void createIndex() throws IOException {
@@ -56,7 +54,8 @@ public class LuceneTester {
                 numIndexed.get("totalFAQs") + " FAQs (archivos), " + numIndexed.get("newFAQs") + " FAQs nuevos");
     }
 
-    private void searchFuzzyQuery(String searchQuery) throws IOException {
+    private String searchFuzzyQuery(String searchQuery) throws IOException {
+        String result = "";
         searcher = new Searcher(indexDir);
         TopDocs coincidences;
 
@@ -68,8 +67,9 @@ public class LuceneTester {
             multiWordFuzzyQuery[i] = new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term(LuceneConstants.QUESTION, words[i])));
         }
 
-        //Con longitud 0 el SpanNearQuery peta, necesita al menos 2 palabras para ver si estan cerca entre ellas
+        //Con longitud 0 y 1 el SpanNearQuery peta, necesita al menos 2 palabras para ver si estan cerca entre ellas
         //En cambio el SpanOrQuery va bien
+        //Con SpanNearQuery, con que falte una de las palabras ya te devuelve 0 hits, no es muy bueno
 //        SpanNearQuery query = new SpanNearQuery(multiWordFuzzyQuery, 500, false);
         SpanOrQuery query = new SpanOrQuery(multiWordFuzzyQuery);
 
@@ -79,7 +79,43 @@ public class LuceneTester {
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){
             Document doc = searcher.getDocument(scoreDoc);
             System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
-                    " | Pregunta id: " + doc.get(LuceneConstants.ID));
+                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
+
+            result += "Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
+                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +"\n\n";
+        }
+
+        if(coincidences.scoreDocs.length == 0){
+            result = "No se ha encontrado ninguna pregunta similar";
+        }
+
+        searcher.close();
+
+        return result;
+    }
+
+    private void searchFuzzyQuery2(String searchQuery) throws IOException {
+        searcher = new Searcher(indexDir);
+        TopDocs coincidences;
+
+        //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un fuzzyquery
+        String[] words = searchQuery.split(" ");
+        SpanQuery[] multiWordFuzzyQuery = new SpanQuery[words.length];
+        MultiPhraseQuery.Builder builder = new MultiPhraseQuery.Builder();
+
+        for (int i = 0; i < words.length; i++) {
+            builder.add(new Term(LuceneConstants.QUESTION, words[i]));
+        }
+
+        MultiPhraseQuery query = builder.build();
+
+        coincidences = searcher.search(query);
+
+        System.out.println(coincidences.totalHits + " preguntas encontradas");
+        for(ScoreDoc scoreDoc : coincidences.scoreDocs){
+            Document doc = searcher.getDocument(scoreDoc);
+            System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
+                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
         }
 
         searcher.close();

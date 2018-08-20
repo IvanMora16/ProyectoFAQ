@@ -97,9 +97,8 @@ public class Indexer {
 //    }
 
     /**
-     * Para obtener los datos necesarios del documento
+     * Para obtener los datos necesarios de cada par pregunta/respuesta de un archivo FAQ
      * @param file
-     * @return Document, el documento con los datos de: pregunta, respuesta, nombre del archivo, ruta del archivo
      * @throws IOException
      */
     private void getDocumentQuestions(File file) throws IOException {
@@ -170,10 +169,9 @@ public class Indexer {
     }
 
     /**
-     * Para indexar los archivos de un directorio en el índice, si existe
+     * Para indexar los archivos (FAQs) de un directorio en el índice
      * @param dataDir
      * @param filter
-     * @return int, el total de archivos indexados en el índice
      * @throws IOException
      */
     public void createIndex(String dataDir, FileFilter filter) throws IOException {
