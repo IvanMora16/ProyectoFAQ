@@ -5,6 +5,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.ArrayList;
+
 public class FaqTfgBot extends TelegramLongPollingBot {
 
     @Override
@@ -13,14 +15,21 @@ public class FaqTfgBot extends TelegramLongPollingBot {
 
         //Comprobamos si hay mensaje y si en el mensaje hay texto
         if (update.hasMessage() && update.getMessage().hasText()) {
-            String result = tester.searchQuestion(update.getMessage().getText());
-            //Creamos un mensaje con texto setText al chat de setChatId
-            SendMessage message = new SendMessage()
-                    .setChatId(update.getMessage().getChatId())
-                    .setText(result);
+            ArrayList<String> result = tester.searchQuestion(update.getMessage().getText());
+            SendMessage[] messages = new SendMessage[result.size()];
+
+            //Creamos un mensaje con cada par pregunta respuesta con texto setText al chat de setChatId
+            for(int i = 0; i < messages.length; i++){
+                messages[i] = new SendMessage()
+                        .setChatId(update.getMessage().getChatId())
+                        .setText(result.get(i));
+            }
+
             try {
-                //Enviamos el mensaje
-                execute(message);
+                //Enviamos un mensaje para cada par pregunta/respuesta obtenido
+                for(int i = 0; i < messages.length; i++){
+                    execute(messages[i]);
+                }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }

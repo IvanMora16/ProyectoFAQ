@@ -9,6 +9,8 @@ import org.apache.lucene.util.QueryBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class LuceneTester {
@@ -17,26 +19,14 @@ public class LuceneTester {
     Indexer indexer;
     Searcher searcher;
 
-    public String searchQuestion(String searchString) {
+    public ArrayList<String> searchQuestion(String searchString) {
         System.out.println("Hola mundo");
-        String result = "";
+        ArrayList<String> result = new ArrayList<>();
+//        String result = "";
 
         try{
             this.createIndex();
-
-            /*BufferedReader br;
-            String searchString = "";
-            System.out.print("Introduce la cadena a buscar: ");
-            System.out.println();
-
-            br = new BufferedReader(new InputStreamReader(System.in));
-            searchString = br.readLine();
-            br.close();
-            */
-
             result = this.searchFuzzyQuery(searchString);
-//            tester.searchFuzzyQuery2(searchString);
-
         }catch(Exception ex){
             ex.printStackTrace();
         }
@@ -54,8 +44,9 @@ public class LuceneTester {
                 numIndexed.get("totalFAQs") + " FAQs (archivos), " + numIndexed.get("newFAQs") + " FAQs nuevos");
     }
 
-    private String searchFuzzyQuery(String searchQuery) throws IOException {
-        String result = "";
+    private ArrayList<String> searchFuzzyQuery(String searchQuery) throws IOException {
+        ArrayList<String> result = new ArrayList<>();
+//        String result = "";
         searcher = new Searcher(indexDir);
         TopDocs coincidences;
 
@@ -81,12 +72,13 @@ public class LuceneTester {
             System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
                     " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
 
-            result += "Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
-                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +"\n\n";
+            result.add("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
+                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
+                    " | Respuesta: " + doc.get(LuceneConstants.ANSWER));
         }
 
         if(coincidences.scoreDocs.length == 0){
-            result = "No se ha encontrado ninguna pregunta similar";
+            result.add("No se ha encontrado ninguna pregunta similar");
         }
 
         searcher.close();
