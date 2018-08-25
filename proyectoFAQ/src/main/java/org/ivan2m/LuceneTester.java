@@ -34,6 +34,10 @@ public class LuceneTester {
         return result;
     }
 
+    /**
+     * Llamamos a la clase Indexer para crear o actualizar un índice
+     * @throws IOException
+     */
     private void createIndex() throws IOException {
         indexer = new Indexer(indexDir, false);
         indexer.createIndex(dataDir, new TextFileFilter());
@@ -44,6 +48,12 @@ public class LuceneTester {
                 numIndexed.get("totalFAQs") + " FAQs (archivos), " + numIndexed.get("newFAQs") + " FAQs nuevos");
     }
 
+    /**
+     * Llamamos al Searcher para realizar una consulta con la pregunta del usuario
+     * @param searchQuery
+     * @return
+     * @throws IOException
+     */
     private ArrayList<String> searchFuzzyQuery(String searchQuery) throws IOException {
         ArrayList<String> result = new ArrayList<>();
 //        String result = "";
@@ -72,8 +82,11 @@ public class LuceneTester {
             System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
                     " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
 
-            result.add("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
-                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
+//            result.add("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
+//                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
+//                    " | Respuesta: " + doc.get(LuceneConstants.ANSWER));
+
+            result.add("Puntuación: " + scoreDoc.score + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
                     " | Respuesta: " + doc.get(LuceneConstants.ANSWER));
         }
 

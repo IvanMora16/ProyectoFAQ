@@ -9,6 +9,9 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.json.simple.JSONArray;
@@ -28,6 +31,10 @@ public class Indexer {
 
     /**
      * Para crear o abrir el indexador para poder añadir documentos
+     * @param indexDirectoryPath Localización donde está el índice
+     * @param deleteIndex True, borramos y creamos el índice de nuevo, porque algún FAQ ha cambiado por ejemplo. False,
+     *                    tan solo abrimos el índice.
+     * @throws IOException
      */
     public Indexer(String indexDirectoryPath, boolean deleteIndex) throws IOException{
         try {
@@ -37,6 +44,21 @@ public class Indexer {
             Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
             analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
+
+//            Similarity similarity = new ClassicSimilarity();
+            Similarity similarity = new BM25Similarity(1.2f, 0.75f);
+//            Similarity similarity = new ClassicSimilarity(){
+//                @Override
+//                public float lengthNorm(int numTerms){
+//                    return (float)1/numTerms;
+//                }
+//
+//                @Override
+//                public float tf(float freq){
+//                    return freq;
+//                }
+//            };
+            indexWriterConf.setSimilarity(similarity);
 
             //Creamos el indexador o lo abrimos en caso de ya existir
             writer = new IndexWriter(indexDirectory, indexWriterConf);
@@ -49,6 +71,10 @@ public class Indexer {
         }
     }
 
+    /**
+     * Para obtener la información del índice
+     * @return Map que contiene información del índice
+     */
     public Map getIndexInfo(){
         return indexInfo;
     }
