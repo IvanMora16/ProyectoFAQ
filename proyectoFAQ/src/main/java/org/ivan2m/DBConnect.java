@@ -78,7 +78,7 @@ public class DBConnect {
                 st.executeUpdate(query);
             }
             else{
-                answer = "No quedan más respuestas para la última pregunta realizada, o no se ha realizado ninguna pregunta";
+                answer = "No quedan más respuestas para la última pregunta realizada";
             }
 
         } catch(Exception e) {

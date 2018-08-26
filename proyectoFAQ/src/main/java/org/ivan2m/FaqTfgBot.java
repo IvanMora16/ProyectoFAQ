@@ -5,13 +5,18 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class FaqTfgBot extends TelegramLongPollingBot {
+    private Searcher searcher;
+
+    public FaqTfgBot(){
+        searcher = new Searcher(LuceneConstants.indexDir);
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
-        LuceneTester tester = new LuceneTester();
         ArrayList<String> result = new ArrayList<>();
         DBConnect dbconnect = new DBConnect();
 
@@ -20,8 +25,13 @@ public class FaqTfgBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             SendMessage message = new SendMessage();
 
+            //Si no es un comando, se trata de una nueva pregunta
             if(!update.getMessage().isCommand()) {
-                result = tester.searchQuestion(update.getMessage().getText());
+                try {
+                    result = searcher.searchFuzzyQuery(update.getMessage().getText());
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
 
                 message = new SendMessage()
                         .setChatId(update.getMessage().getChatId())

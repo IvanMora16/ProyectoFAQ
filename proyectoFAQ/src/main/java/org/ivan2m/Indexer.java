@@ -44,6 +44,7 @@ public class Indexer {
             Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
             analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
+            indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
 //            Similarity similarity = new ClassicSimilarity();
             Similarity similarity = new BM25Similarity(1.2f, 0.75f);
