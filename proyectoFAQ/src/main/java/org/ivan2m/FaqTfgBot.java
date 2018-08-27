@@ -12,7 +12,7 @@ public class FaqTfgBot extends TelegramLongPollingBot {
     private Searcher searcher;
 
     public FaqTfgBot(){
-        searcher = new Searcher(LuceneConstants.indexDir);
+        searcher = new Searcher();
     }
 
     @Override

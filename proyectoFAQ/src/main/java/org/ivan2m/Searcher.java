@@ -22,16 +22,17 @@ import java.util.ArrayList;
 public class Searcher {
     private DirectoryReader reader;
     private IndexSearcher indexSearcher;
+    private IndexReader indexReader;
 
     /**
      * Contructor del Searcher que servirá para hacer consultas al índice
-     * @param indexDirectoryPath Localización del índice
      * @throws IOException
      */
-    public Searcher(String indexDirectoryPath){
+    public Searcher(){
         try {
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
+            Directory indexDirectory = FSDirectory.open(Paths.get(LuceneConstants.indexDir));
             reader = DirectoryReader.open(indexDirectory);
+            indexReader = reader;
             indexSearcher = new IndexSearcher(reader);
 
 //            Similarity similarity = new ClassicSimilarity();
@@ -53,6 +54,14 @@ public class Searcher {
         }catch(Exception ex){
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * Para obtener el IndexReader y leer el contenido del índice
+     * @return
+     */
+    public IndexReader getIndexReader(){
+        return indexReader;
     }
 
     /**
@@ -95,7 +104,7 @@ public class Searcher {
         TopDocs coincidences;
 
         //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un fuzzyquery
-        String[] words = searchQuery.split(" ");
+        String[] words = searchQuery.toLowerCase().split(" ");
         SpanQuery[] multiWordFuzzyQuery = new SpanQuery[words.length];
 
         for (int i = 0; i < words.length; i++) {

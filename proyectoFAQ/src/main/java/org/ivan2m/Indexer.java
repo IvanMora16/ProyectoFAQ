@@ -1,6 +1,6 @@
 package org.ivan2m;
 
-import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.DirectoryReader;
@@ -19,30 +19,39 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Indexer {
     private IndexWriter writer;
-    private String indexDir = "";
-    private Analyzer analyzer;
+    private StandardAnalyzer analyzer;
     private Map<String, Integer> indexInfo;
 
     /**
      * Para crear o abrir el indexador para poder añadir documentos
-     * @param indexDirectoryPath Localización donde está el índice
      * @param deleteIndex True, borramos y creamos el índice de nuevo, porque algún FAQ ha cambiado por ejemplo. False,
      *                    tan solo abrimos el índice.
      * @throws IOException
      */
-    public Indexer(String indexDirectoryPath, boolean deleteIndex) throws IOException{
+    public Indexer(boolean deleteIndex) throws IOException{
         try {
             indexInfo = new HashMap<>();
             //El directorio donde estarán las indexaciones
-            this.indexDir = indexDirectoryPath;
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
-            analyzer = new StandardAnalyzer();
+            Directory indexDirectory = FSDirectory.open(Paths.get(LuceneConstants.indexDir));
+
+//            CharArraySet stopWords = new CharArraySet(1, true);
+//            stopWords.add("la");
+            CharArraySet stopWords = new CharArraySet(getStopWords(), true);
+            analyzer = new StandardAnalyzer(stopWords);
+
+//            System.out.println(analyzer.getStopwordSet().iterator());
+            Iterator it = analyzer.getStopwordSet().iterator();
+            while(it.hasNext()){
+                System.out.println(it.next());
+            }
+
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
             indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
@@ -73,29 +82,35 @@ public class Indexer {
     }
 
     /**
+     * Para obtener la lista de stop words de un archivo
+     * @return
+     */
+    private List<String> getStopWords(){
+        List<String> stopWords = new ArrayList<>();
+        String fileContent = "";
+
+        Path path =  Paths.get(LuceneConstants.stopWordsFile);
+
+        try {
+            fileContent = new String(Files.readAllBytes(path));
+            String[] stop_words = fileContent.split("\r\n");
+
+            for(int i = 0; i < stop_words.length; i++){
+                stopWords.add(stop_words[i]);
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+
+        return stopWords;
+    }
+
+    /**
      * Para obtener la información del índice
      * @return Map que contiene información del índice
      */
     public Map getIndexInfo(){
         return indexInfo;
-    }
-
-    /**
-     * Para comprobar si existe algún índice
-     * @param indexDirectoryPath
-     * @return verdadero o falso según exista el índice
-     */
-    public boolean indexExist(String indexDirectoryPath){
-        boolean existe = false;
-
-        try{
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
-            existe = DirectoryReader.indexExists(indexDirectory);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-
-        return existe;
     }
 
     /**
@@ -149,10 +164,14 @@ public class Indexer {
 
                 //indexamos el contenido del archivo: pregunta y respuesta, y le asignamos un id
                 Field idField = new StoredField(LuceneConstants.ID, id);
-                Field questionField = new TextField(LuceneConstants.QUESTION, question, Field.Store.YES);
-                Field answerField = new TextField(LuceneConstants.ANSWER, answer, Field.Store.YES);
+                Field questionField = new TextField(LuceneConstants.QUESTION, treatText(question), Field.Store.YES);
+                Field answerField = new TextField(LuceneConstants.ANSWER, treatText(answer), Field.Store.YES);
+
                 //indexamos el nombre del archivo
+//                String themes = FilenameUtils.getBaseName(file.getName().toLowerCase()).replaceAll("\\.", " ");
+//                Field fileNameField = new TextField(LuceneConstants.FILE_NAME, themes, Field.Store.YES);
                 Field fileNameField = new StringField(LuceneConstants.FILE_NAME, file.getName().toLowerCase(), Field.Store.YES);
+
                 //indexamos la ruta del archivo
                 Field filePathField = new StringField(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase(), Field.Store.YES);
 
@@ -180,7 +199,7 @@ public class Indexer {
         boolean indexed = true;
 
         //Buscamos si el archivo a indexar ya lo está
-        Searcher searcher = new Searcher(indexDir);
+        Searcher searcher = new Searcher();
         TopDocs results = searcher.search(new TermQuery(new Term(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase())));
 
         //Si no está indexado, lo indexamos
@@ -191,21 +210,21 @@ public class Indexer {
         else{
             indexed = false;
         }
+        searcher.close();
 
         return indexed;
     }
 
     /**
      * Para indexar los archivos (FAQs) de un directorio en el índice
-     * @param dataDir
      * @param filter
      * @throws IOException
      */
-    public void createIndex(String dataDir, FileFilter filter) throws IOException {
+    public void createIndex(FileFilter filter) throws IOException {
         int newFiles = 0;
         int totalFAQs = 0;
         boolean indexed;
-        File[] files = new File(dataDir).listFiles();
+        File[] files = new File(LuceneConstants.dataDir).listFiles();
 
         for(File file : files){
             indexed = false;
@@ -220,5 +239,23 @@ public class Indexer {
         indexInfo.put("totalQuestions", writer.numDocs());
         indexInfo.put("newFAQs", newFiles);
         indexInfo.put("totalFAQs", totalFAQs);
+    }
+
+    /**
+     * Para tratar el texto antes de indexarlo
+     * @param original
+     * @return
+     */
+    private String treatText(String original){
+        String newText = original.replaceAll(",", "");
+        newText = newText.replaceAll("\\.", "");
+        newText = newText.replaceAll("¿", "");
+        newText = newText.replaceAll("\\?", "");
+        newText = newText.replaceAll(";", "");
+        newText = newText.replaceAll(":", "");
+        newText = newText.replaceAll("\\(", "");
+        newText = newText.replaceAll("\\)", "");
+
+        return newText.toLowerCase();
     }
 }

@@ -45,8 +45,8 @@ public class Main {
         }while(!option.equals("S") && !option.equals("s") && !option.equals("N") && !option.equals("n"));
 
         if(option.equals("S") || option.equals("s")){
-            Indexer indexer = new Indexer(LuceneConstants.indexDir, false);
-            indexer.createIndex(LuceneConstants.dataDir, new TextFileFilter());
+            Indexer indexer = new Indexer(true);
+            indexer.createIndex(new TextFileFilter());
             Map<String, Integer> numIndexed = indexer.getIndexInfo();
             indexer.close();
 

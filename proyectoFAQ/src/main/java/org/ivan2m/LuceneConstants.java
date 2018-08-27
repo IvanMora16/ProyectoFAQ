@@ -9,4 +9,5 @@ public class LuceneConstants {
     public static final int MAX_SEARCH = 10;
     public static final String indexDir = "C:\\Users\\ivan_\\Desktop\\Universidad\\TFG\\index";
     public static final String dataDir = "C:\\Users\\ivan_\\Desktop\\Universidad\\TFG\\data";
+    public static final String stopWordsFile = "C:\\Users\\ivan_\\Desktop\\Universidad\\TFG\\data\\stopWords.txt";
 }
