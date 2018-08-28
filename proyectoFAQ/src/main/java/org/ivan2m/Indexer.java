@@ -1,9 +1,17 @@
 package org.ivan2m;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.core.StopFilterFactory;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.es.SpanishAnalyzer;
 import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.snowball.SnowballFilter;
+import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.standard.StandardFilterFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
@@ -26,7 +34,8 @@ import java.util.*;
 
 public class Indexer {
     private IndexWriter writer;
-    private StandardAnalyzer analyzer;
+//    private SpanishAnalyzer analyzer;
+    private Analyzer analyzer;
     private Map<String, Integer> indexInfo;
 
     /**
@@ -41,16 +50,20 @@ public class Indexer {
             //El directorio donde estarán las indexaciones
             Directory indexDirectory = FSDirectory.open(Paths.get(LuceneConstants.indexDir));
 
-//            CharArraySet stopWords = new CharArraySet(1, true);
-//            stopWords.add("la");
-            CharArraySet stopWords = new CharArraySet(getStopWords(), true);
-            analyzer = new StandardAnalyzer(stopWords);
+//            CharArraySet stopWords = new CharArraySet(getStopWords(), true);
+//            analyzer = new SpanishAnalyzer(stopWords);
+            analyzer = CustomAnalyzer.builder()
+                    .withTokenizer(StandardTokenizerFactory.class)
+                    .addTokenFilter(LowerCaseFilterFactory.class)
+                    .addTokenFilter(StopFilterFactory.class, "ignoreCase", "true", "words", LuceneConstants.stopWordsFile, "format", "wordset")
+                    .addTokenFilter(SnowballPorterFilterFactory.class, "language", "Spanish")
+                    .build();
 
 //            System.out.println(analyzer.getStopwordSet().iterator());
-            Iterator it = analyzer.getStopwordSet().iterator();
+            /*Iterator it = analyzer.getStopwordSet().iterator();
             while(it.hasNext()){
                 System.out.println(it.next());
-            }
+            }*/
 
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
             indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
@@ -216,7 +229,7 @@ public class Indexer {
     }
 
     /**
-     * Para indexar los archivos (FAQs) de un directorio en el índice
+     * Para indexar los archivos (faqs) de un directorio en el índice
      * @param filter
      * @throws IOException
      */
@@ -224,15 +237,19 @@ public class Indexer {
         int newFiles = 0;
         int totalFAQs = 0;
         boolean indexed;
-        File[] files = new File(LuceneConstants.dataDir).listFiles();
+        File faqs =  new File(LuceneConstants.dataDir);
 
-        for(File file : files){
-            indexed = false;
-            if(!file.isDirectory() && file.exists() && file.canRead() && filter.accept(file)){
-                totalFAQs++;
-                indexed = indexFile(file);
-                if(indexed)
-                    newFiles++;
+        if(faqs.isDirectory()) {
+            File[] files = new File(LuceneConstants.dataDir).listFiles();
+
+            for (File file : files) {
+                indexed = false;
+                if (!file.isDirectory() && file.exists() && file.canRead() && filter.accept(file)) {
+                    totalFAQs++;
+                    indexed = indexFile(file);
+                    if (indexed)
+                        newFiles++;
+                }
             }
         }
 
