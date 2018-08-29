@@ -99,13 +99,19 @@ public class Searcher {
      * @return
      * @throws IOException
      */
-    public ArrayList<String> searchFuzzyQuery(String searchQuery) throws IOException {
+    public ArrayList<String> searchFuzzyQuery(String userQuestion) throws IOException {
+        String searchQuery =  userQuestion;
         ArrayList<String> result = new ArrayList<>();
 //        String result = "";
         TopDocs coincidences;
 
-        //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un fuzzyquery
-        String[] words = searchQuery.toLowerCase().split(" ");
+        //Aplicamos stemming a la cadena de la búsqueda
+        MyAnalyzer analyzer = new MyAnalyzer();
+        searchQuery = analyzer.stemText(TextFileFilter.treatText(searchQuery));
+        analyzer.close();
+
+        //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un spanquery
+        String[] words = searchQuery.split(" ");
         SpanQuery[] multiWordFuzzyQuery = new SpanQuery[words.length];
 
         for (int i = 0; i < words.length; i++) {
@@ -126,10 +132,6 @@ public class Searcher {
             Document doc = this.getDocument(scoreDoc);
             System.out.println("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
                     " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
-
-//            result.add("Puntuación: " + scoreDoc.score + " | FAQ: " + doc.get(LuceneConstants.FILE_PATH) +
-//                    " | Pregunta id: " + doc.get(LuceneConstants.ID) + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
-//                    " | Respuesta: " + doc.get(LuceneConstants.ANSWER));
 
             result.add("Puntuación: " + scoreDoc.score + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
                     " | Respuesta: " + doc.get(LuceneConstants.ANSWER));

@@ -4,13 +4,11 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.es.SpanishAnalyzer;
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.snowball.SnowballFilter;
+import org.apache.lucene.analysis.miscellaneous.KeywordRepeatFilterFactory;
+import org.apache.lucene.analysis.miscellaneous.RemoveDuplicatesTokenFilterFactory;
 import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.apache.lucene.analysis.util.TokenFilterFactory;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -35,7 +33,7 @@ import java.util.*;
 public class Indexer {
     private IndexWriter writer;
 //    private SpanishAnalyzer analyzer;
-    private Analyzer analyzer;
+    private CustomAnalyzer analyzer;
     private Map<String, Integer> indexInfo;
 
     /**
@@ -52,18 +50,10 @@ public class Indexer {
 
 //            CharArraySet stopWords = new CharArraySet(getStopWords(), true);
 //            analyzer = new SpanishAnalyzer(stopWords);
-            analyzer = CustomAnalyzer.builder()
-                    .withTokenizer(StandardTokenizerFactory.class)
-                    .addTokenFilter(LowerCaseFilterFactory.class)
-                    .addTokenFilter(StopFilterFactory.class, "ignoreCase", "true", "words", LuceneConstants.stopWordsFile, "format", "wordset")
-                    .addTokenFilter(SnowballPorterFilterFactory.class, "language", "Spanish")
-                    .build();
+            MyAnalyzer myAnalyzer = new MyAnalyzer();
+            analyzer = myAnalyzer.getAnalyzer();
 
-//            System.out.println(analyzer.getStopwordSet().iterator());
-            /*Iterator it = analyzer.getStopwordSet().iterator();
-            while(it.hasNext()){
-                System.out.println(it.next());
-            }*/
+            List<TokenFilterFactory> filtros = ((CustomAnalyzer) analyzer).getTokenFilterFactories();
 
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
             indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
@@ -133,6 +123,7 @@ public class Indexer {
     public void close() throws IOException {
         //Comiteamos los cambios en el indexador al hacer close()
         writer.close();
+        analyzer.close();
     }
 
 //    private Document getDocument(File file) throws IOException {
@@ -177,8 +168,8 @@ public class Indexer {
 
                 //indexamos el contenido del archivo: pregunta y respuesta, y le asignamos un id
                 Field idField = new StoredField(LuceneConstants.ID, id);
-                Field questionField = new TextField(LuceneConstants.QUESTION, treatText(question), Field.Store.YES);
-                Field answerField = new TextField(LuceneConstants.ANSWER, treatText(answer), Field.Store.YES);
+                Field questionField = new TextField(LuceneConstants.QUESTION, TextFileFilter.treatText(question), Field.Store.YES);
+                Field answerField = new TextField(LuceneConstants.ANSWER, TextFileFilter.treatText(answer), Field.Store.YES);
 
                 //indexamos el nombre del archivo
 //                String themes = FilenameUtils.getBaseName(file.getName().toLowerCase()).replaceAll("\\.", " ");
@@ -230,10 +221,9 @@ public class Indexer {
 
     /**
      * Para indexar los archivos (faqs) de un directorio en el índice
-     * @param filter
      * @throws IOException
      */
-    public void createIndex(FileFilter filter) throws IOException {
+    public void createIndex() throws IOException {
         int newFiles = 0;
         int totalFAQs = 0;
         boolean indexed;
@@ -244,7 +234,7 @@ public class Indexer {
 
             for (File file : files) {
                 indexed = false;
-                if (!file.isDirectory() && file.exists() && file.canRead() && filter.accept(file)) {
+                if (!file.isDirectory() && file.exists() && file.canRead() && TextFileFilter.accept(file)) {
                     totalFAQs++;
                     indexed = indexFile(file);
                     if (indexed)
@@ -256,23 +246,5 @@ public class Indexer {
         indexInfo.put("totalQuestions", writer.numDocs());
         indexInfo.put("newFAQs", newFiles);
         indexInfo.put("totalFAQs", totalFAQs);
-    }
-
-    /**
-     * Para tratar el texto antes de indexarlo
-     * @param original
-     * @return
-     */
-    private String treatText(String original){
-        String newText = original.replaceAll(",", "");
-        newText = newText.replaceAll("\\.", "");
-        newText = newText.replaceAll("¿", "");
-        newText = newText.replaceAll("\\?", "");
-        newText = newText.replaceAll(";", "");
-        newText = newText.replaceAll(":", "");
-        newText = newText.replaceAll("\\(", "");
-        newText = newText.replaceAll("\\)", "");
-
-        return newText.toLowerCase();
     }
 }

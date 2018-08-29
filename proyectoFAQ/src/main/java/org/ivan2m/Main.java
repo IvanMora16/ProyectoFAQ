@@ -46,7 +46,7 @@ public class Main {
 
         if(option.equals("S") || option.equals("s")){
             Indexer indexer = new Indexer(true);
-            indexer.createIndex(new TextFileFilter());
+            indexer.createIndex();
             Map<String, Integer> numIndexed = indexer.getIndexInfo();
             indexer.close();
 

@@ -1,15 +1,11 @@
 package org.ivan2m;
 
-import jdk.nashorn.internal.parser.Token;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.es.SpanishAnalyzer;
-import org.apache.lucene.analysis.es.SpanishLightStemFilter;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.util.TokenFilterFactory;
-import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 
@@ -20,8 +16,40 @@ import java.io.StringReader;
 public class prueba {
 
     public static void main(String[] args){
-        System.out.println(TokenizerFactory.availableTokenizers());
-        System.out.println(TokenFilterFactory.availableTokenFilters());
+        MyAnalyzer analyzer = new MyAnalyzer();
+        try {
+            System.out.println(analyzer.stemText("caza Cazador cazadoras cazadores"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void StemCustom(String text) throws IOException {
+        String result = "";
+        MyAnalyzer myAnalyzer = new MyAnalyzer();
+        CustomAnalyzer analyzer = myAnalyzer.getAnalyzer();
+        TokenStream tStream = analyzer.tokenStream("content", text);
+        CharTermAttribute term = tStream.addAttribute(CharTermAttribute.class);
+
+        tStream.reset();
+
+        try {
+            while (tStream.incrementToken()){
+                result += term.toString() + " ";
+            }
+        } catch (IOException ioe){
+            System.out.println("Error: "+ioe.getMessage());
+        }
+
+        analyzer.close();
+        System.out.println(result);
+//        TokenStream ts = new RemoveDuplicatesTokenFilter(new SnowballFilter(new KeywordRepeatFilter(
+//                original), "Spanish"));
+
+
+//        StringReader reader = new StringReader("the birds are flying");
+//        TokenStream ts = new RemoveDuplicatesTokenFilter(new SnowballFilter(new KeywordRepeatFilter(
+//                )), "Spanish");
     }
 
     public static String Stem(String text) throws IOException {
