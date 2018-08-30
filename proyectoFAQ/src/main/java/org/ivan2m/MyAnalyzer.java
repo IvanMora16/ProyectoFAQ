@@ -22,7 +22,9 @@ public class MyAnalyzer {
     public MyAnalyzer() {
         try {
             this.analyzer = CustomAnalyzer.builder()
+                    //Separa el texto en tokens, palabras. Separa por espacios y tiene en cuenta los signos(",", ".", ":"...), los elimina
                     .withTokenizer(StandardTokenizerFactory.class)
+                    //Convierte a minusculas el texto
                     .addTokenFilter(LowerCaseFilterFactory.class)
                     .addTokenFilter(StopFilterFactory.class, "ignoreCase", "true", "words", LuceneConstants.stopWordsFile, "format", "wordset")
                     //El filtro KeywordRepeatFilterFactory junto con el de stem (Snowball) hace que en el índice se guarde tanto la palabra
@@ -39,7 +41,7 @@ public class MyAnalyzer {
 
     public String stemText(String text) throws IOException {
         String result = "";
-        TokenStream tStream = analyzer.tokenStream("content", text);
+        TokenStream tStream = this.analyzer.tokenStream("content", text);
         CharTermAttribute term = tStream.addAttribute(CharTermAttribute.class);
 
         tStream.reset();

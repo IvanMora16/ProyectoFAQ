@@ -18,7 +18,7 @@ public class prueba {
     public static void main(String[] args){
         MyAnalyzer analyzer = new MyAnalyzer();
         try {
-            System.out.println(analyzer.stemText("caza Cazador cazadoras cazadores"));
+            System.out.println(analyzer.stemText("!caza. Cazador: la el en cazadoras, \"cazadores\" cazando"));
         } catch (IOException e) {
             e.printStackTrace();
         }

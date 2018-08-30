@@ -1,13 +1,6 @@
 package org.ivan2m;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.miscellaneous.KeywordRepeatFilterFactory;
-import org.apache.lucene.analysis.miscellaneous.RemoveDuplicatesTokenFilterFactory;
-import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.analysis.util.TokenFilterFactory;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -167,9 +160,9 @@ public class Indexer {
                 answer = (String) jsonObject.get("answer");
 
                 //indexamos el contenido del archivo: pregunta y respuesta, y le asignamos un id
-                Field idField = new StoredField(LuceneConstants.ID, id);
-                Field questionField = new TextField(LuceneConstants.QUESTION, TextFileFilter.treatText(question), Field.Store.YES);
-                Field answerField = new TextField(LuceneConstants.ANSWER, TextFileFilter.treatText(answer), Field.Store.YES);
+//                Field idField = new StoredField(LuceneConstants.ID, id);
+                Field questionField = new TextField(LuceneConstants.QUESTION, question, Field.Store.YES);
+                Field answerField = new TextField(LuceneConstants.ANSWER, answer, Field.Store.YES);
 
                 //indexamos el nombre del archivo
 //                String themes = FilenameUtils.getBaseName(file.getName().toLowerCase()).replaceAll("\\.", " ");
@@ -179,7 +172,7 @@ public class Indexer {
                 //indexamos la ruta del archivo
                 Field filePathField = new StringField(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase(), Field.Store.YES);
 
-                doc.add(idField);
+//                doc.add(idField);
                 doc.add(questionField);
                 doc.add(answerField);
                 doc.add(fileNameField);
@@ -234,7 +227,8 @@ public class Indexer {
 
             for (File file : files) {
                 indexed = false;
-                if (!file.isDirectory() && file.exists() && file.canRead() && TextFileFilter.accept(file)) {
+                if (!file.isDirectory() && file.exists() && file.canRead() &&
+                        file.getName().toLowerCase().endsWith(".json")) {
                     totalFAQs++;
                     indexed = indexFile(file);
                     if (indexed)
