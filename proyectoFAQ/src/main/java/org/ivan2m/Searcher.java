@@ -6,9 +6,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.search.spans.SpanMultiTermQueryWrapper;
 import org.apache.lucene.search.spans.SpanOrQuery;
 import org.apache.lucene.search.spans.SpanQuery;
@@ -36,21 +34,8 @@ public class Searcher {
             indexReader = reader;
             indexSearcher = new IndexSearcher(reader);
 
-//            Similarity similarity = new ClassicSimilarity();
-//            Similarity similarity = new ClassicSimilarity(){
-//                @Override
-//                public float lengthNorm(int numTerms){
-//                    return (float)1/numTerms;
-//                }
-//
-//                @Override
-//                public float tf(float freq){
-//                    return freq;
-//                }
-//            };
             Similarity similarity = new BM25Similarity(1.2f, 0.75f);
             indexSearcher.setSimilarity(similarity);
-//            System.out.println(indexSearcher.getSimilarity(true));
 
         }catch(Exception ex){
             ex.printStackTrace();
@@ -99,50 +84,47 @@ public class Searcher {
      * @return
      * @throws IOException
      */
-    public ArrayList<String> searchFuzzyQuery(String userQuestion) throws IOException {
+    public ArrayList<String> searchQuery(String userQuestion) throws IOException {
         String searchQuery = userQuestion;
         ArrayList<String> result = new ArrayList<>();
-//        String result = "";
         TopDocs coincidences;
 
-        //Aplicamos stemming a la cadena de la búsqueda
+        //Aplicamos los filtros del analyzer a la cadena de la búsqueda
         MyAnalyzer analyzer = new MyAnalyzer();
-        searchQuery = analyzer.stemText(searchQuery);
+        searchQuery = analyzer.applyFilters(searchQuery);
         analyzer.close();
 
         //Separamos las palabras de la posible frase para anyadirlas a la query por separado, cada una en un spanquery
         String[] words = searchQuery.split(" ");
-        SpanQuery[] multiWordFuzzyQuery = new SpanQuery[words.length];
+        SpanQuery[] multiWordQuery = new SpanQuery[words.length];
 
         for (int i = 0; i < words.length; i++) {
-//            multiWordFuzzyQuery[i] = new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term(LuceneConstants.QUESTION, words[i])));
-            multiWordFuzzyQuery[i] = new SpanTermQuery(new Term(LuceneConstants.QUESTION, words[i]));
+            //Para query para buscar con fuzzy query
+//            multiWordQuery[i] = new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term(LuceneConstants.QUESTION, words[i])));
+            //Para query para buscar por palabra exacta
+            multiWordQuery[i] = new SpanTermQuery(new Term(LuceneConstants.QUESTION, words[i]));
         }
 
         //Con longitud 0 y 1 el SpanNearQuery peta, necesita al menos 2 palabras para ver si estan cerca entre ellas
         //En cambio el SpanOrQuery va bien
         //Con SpanNearQuery, con que falte una de las palabras ya te devuelve 0 hits, no es muy bueno
-//        SpanNearQuery query = new SpanNearQuery(multiWordFuzzyQuery, 500, false);
-        SpanOrQuery query = new SpanOrQuery(multiWordFuzzyQuery);
+        SpanOrQuery query = new SpanOrQuery(multiWordQuery);
 
         coincidences = this.search(query);
 
         System.out.println(coincidences.totalHits + " preguntas encontradas");
         for(ScoreDoc scoreDoc : coincidences.scoreDocs){
             Document doc = this.getDocument(scoreDoc);
+
             System.out.println("Puntuación: " + scoreDoc.score + " | Pregunta id: " + doc.get(LuceneConstants.ID) +
                     " | Pregunta: " + doc.get(LuceneConstants.QUESTION));
 
-            result.add("Puntuación: " + scoreDoc.score + " | Pregunta: " + doc.get(LuceneConstants.QUESTION) +
-                    " | Respuesta: " + doc.get(LuceneConstants.ANSWER));
+            result.add("Pregunta: " + doc.get(LuceneConstants.QUESTION) + "\r\nRespuesta: " + doc.get(LuceneConstants.ANSWER));
         }
 
         if(coincidences.scoreDocs.length == 0){
             result.add("No se ha encontrado ninguna pregunta similar");
         }
-
-        //Cuando deberia cerrarlo?
-//        searcher.close();
 
         return result;
     }

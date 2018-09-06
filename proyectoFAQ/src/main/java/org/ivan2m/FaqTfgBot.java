@@ -28,7 +28,7 @@ public class FaqTfgBot extends TelegramLongPollingBot {
             //Si no es un comando, se trata de una nueva pregunta
             if(!update.getMessage().isCommand()) {
                 try {
-                    result = searcher.searchFuzzyQuery(update.getMessage().getText());
+                    result = searcher.searchQuery(update.getMessage().getText());
                 }catch(IOException e){
                     e.printStackTrace();
                 }

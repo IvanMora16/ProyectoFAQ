@@ -18,10 +18,11 @@ public class Main {
         }
 
         ApiContextInitializer.init();
-
+        //Creamos el bot
         TelegramBotsApi botsApi = new TelegramBotsApi();
 
         try{
+            //Registramos el bot
             botsApi.registerBot(new FaqTfgBot());
         }catch(TelegramApiException e){
             e.printStackTrace();
@@ -35,17 +36,33 @@ public class Main {
      */
     private static void udpateIndex() throws IOException {
         String option = "";
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         do {
-            System.out.print("¿Deseas actualizar el índice con nuevos archivos FAQ?(S/n): ");
+            System.out.print("¿Deseas actualizar el índice?(S/n): ");
             System.out.println();
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             option = br.readLine();
-            br.close();
         }while(!option.equals("S") && !option.equals("s") && !option.equals("N") && !option.equals("n"));
 
         if(option.equals("S") || option.equals("s")){
-            Indexer indexer = new Indexer(true);
+            Indexer indexer;
+
+            do {
+                System.out.print("¿Ha cambiado alguno de los FAQ que ya estaban indexados?(S/n): ");
+                System.out.println();
+
+                option = br.readLine();
+                br.close();
+            }while(!option.equals("S") && !option.equals("s") && !option.equals("N") && !option.equals("n"));
+            br.close();
+
+            if(option.equals("S") || option.equals("s")) {
+                indexer = new Indexer(true);
+            }
+            else{
+                indexer = new Indexer(false);
+            }
+
             indexer.createIndex();
             Map<String, Integer> numIndexed = indexer.getIndexInfo();
             indexer.close();

@@ -15,10 +15,17 @@ import java.io.IOException;
 public class MyAnalyzer {
     private CustomAnalyzer analyzer;
 
+    /**
+     * Para obtener el analyzer
+     * @return
+     */
     public CustomAnalyzer getAnalyzer(){
         return this.analyzer;
     }
 
+    /**
+     * Creación de un Analyzer de Lucene con filtros personalizados
+     */
     public MyAnalyzer() {
         try {
             this.analyzer = CustomAnalyzer.builder()
@@ -39,7 +46,13 @@ public class MyAnalyzer {
         }
     }
 
-    public String stemText(String text) throws IOException {
+    /**
+     * Para aplicar los filtros del analyzer a un texto
+     * @param text texto al que se le aplican los filtros
+     * @return el resultado de aplicar los filtros a text
+     * @throws IOException
+     */
+    public String applyFilters(String text) throws IOException {
         String result = "";
         TokenStream tStream = this.analyzer.tokenStream("content", text);
         CharTermAttribute term = tStream.addAttribute(CharTermAttribute.class);
@@ -54,7 +67,7 @@ public class MyAnalyzer {
             System.out.println("Error: "+ioe.getMessage());
         }
 
-        //Si por algun motivo no ha hecho bien el stem
+        //Si por algun motivo no ha aplicado bien los filtros devolvemos el texto original
         if (result.length()==0)
             result = (text);
 

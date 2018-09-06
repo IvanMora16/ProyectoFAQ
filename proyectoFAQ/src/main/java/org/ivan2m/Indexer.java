@@ -41,29 +41,13 @@ public class Indexer {
             //El directorio donde estarán las indexaciones
             Directory indexDirectory = FSDirectory.open(Paths.get(LuceneConstants.indexDir));
 
-//            CharArraySet stopWords = new CharArraySet(getStopWords(), true);
-//            analyzer = new SpanishAnalyzer(stopWords);
             MyAnalyzer myAnalyzer = new MyAnalyzer();
             analyzer = myAnalyzer.getAnalyzer();
-
-            List<TokenFilterFactory> filtros = ((CustomAnalyzer) analyzer).getTokenFilterFactories();
 
             IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
             indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
-//            Similarity similarity = new ClassicSimilarity();
             Similarity similarity = new BM25Similarity(1.2f, 0.75f);
-//            Similarity similarity = new ClassicSimilarity(){
-//                @Override
-//                public float lengthNorm(int numTerms){
-//                    return (float)1/numTerms;
-//                }
-//
-//                @Override
-//                public float tf(float freq){
-//                    return freq;
-//                }
-//            };
             indexWriterConf.setSimilarity(similarity);
 
             //Creamos el indexador o lo abrimos en caso de ya existir
@@ -75,30 +59,6 @@ public class Indexer {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-
-    /**
-     * Para obtener la lista de stop words de un archivo
-     * @return
-     */
-    private List<String> getStopWords(){
-        List<String> stopWords = new ArrayList<>();
-        String fileContent = "";
-
-        Path path =  Paths.get(LuceneConstants.stopWordsFile);
-
-        try {
-            fileContent = new String(Files.readAllBytes(path));
-            String[] stop_words = fileContent.split("\r\n");
-
-            for(int i = 0; i < stop_words.length; i++){
-                stopWords.add(stop_words[i]);
-            }
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
-        return stopWords;
     }
 
     /**
@@ -119,22 +79,6 @@ public class Indexer {
         analyzer.close();
     }
 
-//    private Document getDocument(File file) throws IOException {
-//        Document doc = new Document();
-//        //indexamos el contenido del archivo
-//        Field contentField = new TextField(LuceneConstants.CONTENTS, new FileReader(file));
-//        //indexamos el nombre del archivo
-//        Field fileNameField = new TextField(LuceneConstants.FILE_NAME, file.getName(), Field.Store.YES);
-//        //indexamos la ruta del archivo
-//        Field filePathField = new TextField(LuceneConstants.FILE_PATH, file.getCanonicalPath(), Field.Store.YES);
-//
-//        doc.add(contentField);
-//        doc.add(fileNameField);
-//        doc.add(filePathField);
-//
-//        return doc;
-//    }
-
     /**
      * Para obtener los datos necesarios de cada par pregunta/respuesta de un archivo FAQ
      * @param file
@@ -144,7 +88,6 @@ public class Indexer {
         JSONParser parser = new JSONParser();
         String question = "";
         String answer = "";
-        int id;
         Document doc;
 
         try{
@@ -155,12 +98,10 @@ public class Indexer {
                 doc = new Document();
                 JSONObject jsonObject = (JSONObject) jsonArray.get(i);
 
-                id = i;
                 question = (String) jsonObject.get("question");
                 answer = (String) jsonObject.get("answer");
 
-                //indexamos el contenido del archivo: pregunta y respuesta, y le asignamos un id
-//                Field idField = new StoredField(LuceneConstants.ID, id);
+                //indexamos el contenido del archivo: pregunta y respuesta
                 Field questionField = new TextField(LuceneConstants.QUESTION, question, Field.Store.YES);
                 Field answerField = new TextField(LuceneConstants.ANSWER, answer, Field.Store.YES);
 
@@ -172,7 +113,6 @@ public class Indexer {
                 //indexamos la ruta del archivo
                 Field filePathField = new StringField(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase(), Field.Store.YES);
 
-//                doc.add(idField);
                 doc.add(questionField);
                 doc.add(answerField);
                 doc.add(fileNameField);
