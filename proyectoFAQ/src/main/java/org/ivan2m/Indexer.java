@@ -1,9 +1,8 @@
 package org.ivan2m;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.util.TokenFilterFactory;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
@@ -19,45 +18,36 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Indexer {
     private IndexWriter writer;
-    private String indexDir = "";
-    private Analyzer analyzer;
+//    private SpanishAnalyzer analyzer;
+    private CustomAnalyzer analyzer;
     private Map<String, Integer> indexInfo;
 
     /**
      * Para crear o abrir el indexador para poder añadir documentos
-     * @param indexDirectoryPath Localización donde está el índice
      * @param deleteIndex True, borramos y creamos el índice de nuevo, porque algún FAQ ha cambiado por ejemplo. False,
      *                    tan solo abrimos el índice.
      * @throws IOException
      */
-    public Indexer(String indexDirectoryPath, boolean deleteIndex) throws IOException{
+    public Indexer(boolean deleteIndex) throws IOException{
         try {
             indexInfo = new HashMap<>();
             //El directorio donde estarán las indexaciones
-            this.indexDir = indexDirectoryPath;
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
-            analyzer = new StandardAnalyzer();
-            IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
+            Directory indexDirectory = FSDirectory.open(Paths.get(LuceneConstants.indexDir));
 
-//            Similarity similarity = new ClassicSimilarity();
+            MyAnalyzer myAnalyzer = new MyAnalyzer();
+            analyzer = myAnalyzer.getAnalyzer();
+
+            IndexWriterConfig indexWriterConf = new IndexWriterConfig(analyzer);
+            indexWriterConf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+
             Similarity similarity = new BM25Similarity(1.2f, 0.75f);
-//            Similarity similarity = new ClassicSimilarity(){
-//                @Override
-//                public float lengthNorm(int numTerms){
-//                    return (float)1/numTerms;
-//                }
-//
-//                @Override
-//                public float tf(float freq){
-//                    return freq;
-//                }
-//            };
             indexWriterConf.setSimilarity(similarity);
 
             //Creamos el indexador o lo abrimos en caso de ya existir
@@ -80,47 +70,14 @@ public class Indexer {
     }
 
     /**
-     * Para comprobar si existe algún índice
-     * @param indexDirectoryPath
-     * @return verdadero o falso según exista el índice
-     */
-    public boolean indexExist(String indexDirectoryPath){
-        boolean existe = false;
-
-        try{
-            Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
-            existe = DirectoryReader.indexExists(indexDirectory);
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-
-        return existe;
-    }
-
-    /**
      * Para cerrar el indexador y guardar los cambios
      * @throws IOException
      */
     public void close() throws IOException {
         //Comiteamos los cambios en el indexador al hacer close()
         writer.close();
+        analyzer.close();
     }
-
-//    private Document getDocument(File file) throws IOException {
-//        Document doc = new Document();
-//        //indexamos el contenido del archivo
-//        Field contentField = new TextField(LuceneConstants.CONTENTS, new FileReader(file));
-//        //indexamos el nombre del archivo
-//        Field fileNameField = new TextField(LuceneConstants.FILE_NAME, file.getName(), Field.Store.YES);
-//        //indexamos la ruta del archivo
-//        Field filePathField = new TextField(LuceneConstants.FILE_PATH, file.getCanonicalPath(), Field.Store.YES);
-//
-//        doc.add(contentField);
-//        doc.add(fileNameField);
-//        doc.add(filePathField);
-//
-//        return doc;
-//    }
 
     /**
      * Para obtener los datos necesarios de cada par pregunta/respuesta de un archivo FAQ
@@ -131,7 +88,6 @@ public class Indexer {
         JSONParser parser = new JSONParser();
         String question = "";
         String answer = "";
-        int id;
         Document doc;
 
         try{
@@ -142,20 +98,21 @@ public class Indexer {
                 doc = new Document();
                 JSONObject jsonObject = (JSONObject) jsonArray.get(i);
 
-                id = i;
                 question = (String) jsonObject.get("question");
                 answer = (String) jsonObject.get("answer");
 
-                //indexamos el contenido del archivo: pregunta y respuesta, y le asignamos un id
-                Field idField = new StoredField(LuceneConstants.ID, id);
+                //indexamos el contenido del archivo: pregunta y respuesta
                 Field questionField = new TextField(LuceneConstants.QUESTION, question, Field.Store.YES);
                 Field answerField = new TextField(LuceneConstants.ANSWER, answer, Field.Store.YES);
+
                 //indexamos el nombre del archivo
+//                String themes = FilenameUtils.getBaseName(file.getName().toLowerCase()).replaceAll("\\.", " ");
+//                Field fileNameField = new TextField(LuceneConstants.FILE_NAME, themes, Field.Store.YES);
                 Field fileNameField = new StringField(LuceneConstants.FILE_NAME, file.getName().toLowerCase(), Field.Store.YES);
+
                 //indexamos la ruta del archivo
                 Field filePathField = new StringField(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase(), Field.Store.YES);
 
-                doc.add(idField);
                 doc.add(questionField);
                 doc.add(answerField);
                 doc.add(fileNameField);
@@ -179,7 +136,7 @@ public class Indexer {
         boolean indexed = true;
 
         //Buscamos si el archivo a indexar ya lo está
-        Searcher searcher = new Searcher(indexDir);
+        Searcher searcher = new Searcher();
         TopDocs results = searcher.search(new TermQuery(new Term(LuceneConstants.FILE_PATH, file.getCanonicalPath().toLowerCase())));
 
         //Si no está indexado, lo indexamos
@@ -190,29 +147,33 @@ public class Indexer {
         else{
             indexed = false;
         }
+        searcher.close();
 
         return indexed;
     }
 
     /**
-     * Para indexar los archivos (FAQs) de un directorio en el índice
-     * @param dataDir
-     * @param filter
+     * Para indexar los archivos (faqs) de un directorio en el índice
      * @throws IOException
      */
-    public void createIndex(String dataDir, FileFilter filter) throws IOException {
+    public void createIndex() throws IOException {
         int newFiles = 0;
         int totalFAQs = 0;
         boolean indexed;
-        File[] files = new File(dataDir).listFiles();
+        File faqs =  new File(LuceneConstants.dataDir);
 
-        for(File file : files){
-            indexed = false;
-            if(!file.isDirectory() && file.exists() && file.canRead() && filter.accept(file)){
-                totalFAQs++;
-                indexed = indexFile(file);
-                if(indexed)
-                    newFiles++;
+        if(faqs.isDirectory()) {
+            File[] files = new File(LuceneConstants.dataDir).listFiles();
+
+            for (File file : files) {
+                indexed = false;
+                if (!file.isDirectory() && file.exists() && file.canRead() &&
+                        file.getName().toLowerCase().endsWith(".json")) {
+                    totalFAQs++;
+                    indexed = indexFile(file);
+                    if (indexed)
+                        newFiles++;
+                }
             }
         }
 

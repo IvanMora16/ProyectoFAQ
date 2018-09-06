@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-08-2018 a las 20:36:56
+-- Tiempo de generación: 06-09-2018 a las 12:34:22
 -- Versión del servidor: 10.1.32-MariaDB
 -- Versión de PHP: 7.1.17
 
@@ -41,7 +41,6 @@ CREATE TABLE `chats` (
 CREATE TABLE `preguntas` (
   `id` bigint(11) NOT NULL,
   `pregunta` longtext NOT NULL,
-  `respuesta` longtext,
   `chat_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -70,7 +69,7 @@ ALTER TABLE `preguntas`
 -- AUTO_INCREMENT de la tabla `preguntas`
 --
 ALTER TABLE `preguntas`
-  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id` bigint(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5866;
 
 --
 -- Restricciones para tablas volcadas
