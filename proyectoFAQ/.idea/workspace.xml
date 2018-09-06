@@ -21,9 +21,10 @@
       <file leaf-file-name="FaqTfgBot.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/FaqTfgBot.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="38" column="33" lean-forward="true" selection-start-line="38" selection-start-column="33" selection-end-line="38" selection-end-column="33" />
+            <state relative-caret-position="357">
+              <caret line="21" selection-start-line="21" selection-end-line="21" />
               <folding>
+                <element signature="e#0#3953#0" expanded="true" />
                 <element signature="imports" expanded="true" />
                 <element signature="e#448#449#0" expanded="true" />
                 <element signature="e#489#490#0" expanded="true" />
@@ -65,24 +66,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Searcher.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Searcher.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Searcher.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1972">
-              <caret line="118" column="91" selection-start-line="118" selection-start-column="91" selection-end-line="118" selection-end-column="91" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+            <state relative-caret-position="119">
+              <caret line="7" column="60" lean-forward="true" selection-start-line="7" selection-start-column="60" selection-end-line="7" selection-end-column="60" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Main.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Main.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Main.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="731">
-              <caret line="43" column="35" lean-forward="true" selection-start-line="43" selection-start-column="35" selection-end-line="43" selection-end-column="35" />
+              <caret line="43" column="45" selection-start-line="43" selection-start-column="45" selection-end-line="43" selection-end-column="45" />
               <folding>
+                <element signature="e#0#3703#0" expanded="true" />
                 <element signature="imports" expanded="true" />
               </folding>
             </state>
@@ -135,7 +134,6 @@
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/MySimilarity.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/LuceneTester.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/DBConnect.java" />
-        <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/FaqTfgBot.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/MySpanishAnalyzer.java" />
         <option value="$PROJECT_DIR$/src/main/resources/stopWords.txt" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/SignsFilterFactory.java" />
@@ -144,10 +142,11 @@
         <option value="$PROJECT_DIR$/src/main/resources/faqs/faqPrueba.json" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/prueba.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/Searcher.java" />
-        <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/Main.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/MyAnalyzer.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/LuceneConstants.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/Indexer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/FaqTfgBot.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/ivan2m/Main.java" />
       </list>
     </option>
   </component>
@@ -388,12 +387,12 @@
       <workItem from="1536068927757" duration="3530000" />
       <workItem from="1536078500494" duration="15215000" />
       <workItem from="1536140323571" duration="2757000" />
-      <workItem from="1536227933333" duration="3587000" />
+      <workItem from="1536227933333" duration="4452000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="238519000" />
+    <option name="totallyTimeSpent" value="239384000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
@@ -414,7 +413,7 @@
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info id="Capture Tool" order="6" />
       <window_info id="Designer" order="3" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18960468" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18960468" />
       <window_info anchor="right" id="Bean Validation" order="9" />
       <window_info anchor="right" id="Database" order="6" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -422,7 +421,7 @@
       <window_info id="UI Designer" order="4" />
       <window_info anchor="right" id="Theme Preview" order="5" />
       <window_info id="Favorites" order="5" side_tool="true" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49926794" visible="true" weight="0.4165342" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49926794" visible="true" weight="0.4165342" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -663,16 +662,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="731">
-          <caret line="43" column="35" lean-forward="true" selection-start-line="43" selection-start-column="35" selection-end-line="43" selection-end-column="35" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/MyAnalyzer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="731">
@@ -707,11 +696,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Searcher.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="60" lean-forward="true" selection-start-line="7" selection-start-column="60" selection-end-line="7" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/FaqTfgBot.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="38" column="33" lean-forward="true" selection-start-line="38" selection-start-column="33" selection-end-line="38" selection-end-column="33" />
+        <state relative-caret-position="357">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
           <folding>
+            <element signature="e#0#3953#0" expanded="true" />
             <element signature="imports" expanded="true" />
             <element signature="e#448#449#0" expanded="true" />
             <element signature="e#489#490#0" expanded="true" />
@@ -719,11 +716,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Searcher.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/ivan2m/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1972">
-          <caret line="118" column="91" selection-start-line="118" selection-start-column="91" selection-end-line="118" selection-end-column="91" />
+        <state relative-caret-position="731">
+          <caret line="43" column="45" selection-start-line="43" selection-start-column="45" selection-end-line="43" selection-end-column="45" />
           <folding>
+            <element signature="e#0#3703#0" expanded="true" />
             <element signature="imports" expanded="true" />
           </folding>
         </state>
